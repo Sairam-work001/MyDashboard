@@ -1,179 +1,229 @@
-// ===== Theme Toggle =====
-const themeToggle = document.getElementById('themeToggle');
-const html = document.documentElement;
+// ===== Dark mode only (theme fixed to dark in <html data-theme="dark">) =====
+// (Traditional nav bar / mobile menu removed — navigation is now the spatial hub.)
 
-function setTheme(theme) {
-  html.setAttribute('data-theme', theme);
-  localStorage.setItem('sg-theme', theme);
-}
-
-// Load saved theme or default to dark
-const savedTheme = localStorage.getItem('sg-theme') || 'dark';
-setTheme(savedTheme);
-
-themeToggle.addEventListener('click', () => {
-  const current = html.getAttribute('data-theme');
-  setTheme(current === 'dark' ? 'light' : 'dark');
-});
-
-// ===== Mobile Menu =====
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('navLinks');
-
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
-});
-
-// Close mobile menu on link click
-navLinks.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    navLinks.classList.remove('active');
-  });
-});
-
-// ===== Navbar Scroll Effect =====
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  navbar.style.boxShadow = window.scrollY > 20
-    ? '0 2px 20px rgba(0,0,0,0.15)'
-    : 'none';
-});
-
-// ===== Scroll Animations =====
-const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, observerOptions);
-
-// Add fade-in to sections
-document.querySelectorAll('.timeline-item, .project-card, .skill-category, .edu-card, .highlight-card, .contact-card').forEach(el => {
+// ===== Reveal targets (revealed when their spatial panel opens) =====
+document.querySelectorAll('.timeline-item, .skill-category, .edu-card, .contact-card').forEach(el => {
   el.classList.add('fade-in');
-  observer.observe(el);
+  const sibs = Array.from(el.parentElement.children);
+  el.dataset.revealIndex = String(sibs.indexOf(el) % 6);
 });
 
-// ===== Edit Mode =====
-const editToggleBtn = document.getElementById('editToggleBtn');
-const editBanner = document.getElementById('editBanner');
-const exitEditMode = document.getElementById('exitEditMode');
-const passwordModal = document.getElementById('passwordModal');
-const editPasswordInput = document.getElementById('editPassword');
-const modalSubmit = document.getElementById('modalSubmit');
-const modalCancel = document.getElementById('modalCancel');
-const modalError = document.getElementById('modalError');
+// ===== Cinematic project showcase (icon + info, alternating, reveals on scroll) =====
+document.querySelectorAll('.project-card').forEach(card => {
+  const icon = card.querySelector('.project-icon');
+  const visual = document.createElement('div');
+  visual.className = 'project-visual';
+  if (icon) visual.appendChild(icon);
 
-const PASS_KEY = 'sg-edit-pass';
-const EDITS_KEY = 'sg-edits';
+  const info = document.createElement('div');
+  info.className = 'project-info';
+  Array.from(card.children).forEach(ch => { if (ch !== visual) info.appendChild(ch); });
 
-// Load saved edits on page load
-function loadEdits() {
-  const edits = JSON.parse(localStorage.getItem(EDITS_KEY) || '{}');
-  document.querySelectorAll('.editable').forEach(el => {
-    const field = el.getAttribute('data-field');
-    if (field && edits[field]) {
-      el.textContent = edits[field];
-    }
-  });
-}
+  card.appendChild(visual);
+  card.appendChild(info);
+});
 
-function saveEdit(field, value) {
-  const edits = JSON.parse(localStorage.getItem(EDITS_KEY) || '{}');
-  edits[field] = value;
-  localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
-}
-
-// Hash password (simple SHA-256)
-async function hashPassword(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function enableEditMode() {
-  document.body.classList.add('edit-mode');
-  editBanner.classList.add('active');
-
-  document.querySelectorAll('.editable').forEach(el => {
-    el.setAttribute('contenteditable', 'true');
-    el.addEventListener('blur', function handler() {
-      const field = el.getAttribute('data-field');
-      if (field) {
-        saveEdit(field, el.textContent);
-      }
+// ===== 3D tilt on content cards (pointer-driven, respects touch & reduced-motion) =====
+const canHover = window.matchMedia('(hover: hover)').matches;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (canHover && !reduceMotion) {
+  const TILT = 9; // max degrees
+  document.querySelectorAll('.skill-category, .edu-card, .highlight-card, .contact-card, .timeline-content').forEach(card => {
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transition = 'transform 80ms linear';   // inline = stays snappy
+      card.style.transform = `translateY(-6px) rotateX(${(-py * TILT).toFixed(2)}deg) rotateY(${(px * TILT).toFixed(2)}deg)`;
+    });
+    card.addEventListener('pointerleave', () => {
+      card.style.transition = 'transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease';
+      card.style.transform = '';
     });
   });
 }
 
-function disableEditMode() {
-  document.body.classList.remove('edit-mode');
-  editBanner.classList.remove('active');
-  document.querySelectorAll('.editable').forEach(el => {
-    el.removeAttribute('contenteditable');
-  });
+// ===== (In-browser edit mode removed) =====
+
+// ===== Count-up animation for highlight numbers =====
+function animateCount(el) {
+  const raw = el.textContent.trim();          // e.g. "12+", "6+", "3"
+  const match = raw.match(/(\d+)(.*)/);
+  if (!match) return;
+  const target = parseInt(match[1], 10);
+  const suffix = match[2] || '';
+  const duration = 1900;
+  let startTime = null;
+
+  function step(now) {
+    if (startTime === null) startTime = now;
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);   // easeOutCubic
+    el.textContent = Math.round(eased * target) + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
-editToggleBtn.addEventListener('click', () => {
-  if (document.body.classList.contains('edit-mode')) {
-    disableEditMode();
-    return;
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.counted) {
+      entry.target.dataset.counted = 'true';
+      animateCount(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.highlight-number').forEach(el => countObserver.observe(el));
+
+// ===== IDE / code-editor window chrome on content cards =====
+// Wraps each card's content in a body and prepends a titlebar (traffic lights + filename).
+function toFileName(text, ext) {
+  const words = (text || 'file').replace(/[^a-zA-Z0-9]+/g, ' ').trim().split(/\s+/);
+  const camel = words.map((w, i) =>
+    i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  ).join('').slice(0, 22);
+  return (camel || 'file') + ext;
+}
+function applyWindowChrome(selector, ext, headingSel) {
+  document.querySelectorAll(selector).forEach(card => {
+    if (card.classList.contains('ide-card')) return;
+    const heading = card.querySelector(headingSel);
+    const name = toFileName(heading ? heading.textContent : '', ext);
+
+    const bar = document.createElement('div');
+    bar.className = 'win-bar';
+    bar.innerHTML = '<span class="win-name">' + name + '</span>';
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    while (card.firstChild) body.appendChild(card.firstChild);
+
+    card.appendChild(bar);
+    card.appendChild(body);
+    card.classList.add('ide-card');
+  });
+}
+applyWindowChrome('.skill-category', '.swift', 'h3');
+applyWindowChrome('.timeline-content', '.swift', 'h3');
+applyWindowChrome('.edu-card', '.md', '.edu-degree');
+
+// ===== Matrix code-rain background (pure canvas) =====
+(function matrixRain() {
+  const canvas = document.getElementById('matrix-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const chars = '01</>{}[]();=+*&%01ƒλ01'.split('');
+  const fontSize = 16;
+  let w, h, cols, drops;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    cols = Math.floor(w / fontSize);
+    drops = new Array(cols).fill(0).map(() => Math.floor(Math.random() * -h / fontSize));
   }
-  passwordModal.classList.add('active');
-  editPasswordInput.value = '';
-  modalError.textContent = '';
-  editPasswordInput.focus();
-});
+  resize();
+  window.addEventListener('resize', resize);
 
-modalCancel.addEventListener('click', () => {
-  passwordModal.classList.remove('active');
-});
-
-editPasswordInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') modalSubmit.click();
-});
-
-modalSubmit.addEventListener('click', async () => {
-  const password = editPasswordInput.value.trim();
-  if (!password) {
-    modalError.textContent = 'Please enter a password.';
-    return;
-  }
-  if (password.length < 4) {
-    modalError.textContent = 'Password must be at least 4 characters.';
-    return;
+  function draw() {
+    ctx.fillStyle = 'rgba(6, 6, 14, 0.09)';   // trailing fade
+    ctx.fillRect(0, 0, w, h);
+    ctx.font = fontSize + 'px ' + '"Fira Code", monospace';
+    for (let i = 0; i < cols; i++) {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+      // occasional bright cyan "head", otherwise soft violet
+      ctx.fillStyle = Math.random() > 0.94 ? 'rgba(120, 240, 255, 0.95)' : 'rgba(140, 134, 255, 0.75)';
+      ctx.fillText(ch, x, y);
+      if (y > h && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
   }
 
-  const hashed = await hashPassword(password);
-  const storedHash = localStorage.getItem(PASS_KEY);
-
-  if (!storedHash) {
-    // First time — set the password
-    localStorage.setItem(PASS_KEY, hashed);
-    passwordModal.classList.remove('active');
-    enableEditMode();
-  } else if (hashed === storedHash) {
-    // Correct password
-    passwordModal.classList.remove('active');
-    enableEditMode();
-  } else {
-    modalError.textContent = 'Incorrect password. Try again.';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let running = true, frame = 0;
+  function loop() {
+    if (!running) return;
+    requestAnimationFrame(loop);
+    if (frame++ % 3 === 0) draw();   // ~20fps — calmer rain
   }
-});
+  document.addEventListener('visibilitychange', () => {
+    running = !document.hidden;
+    if (running && !reduce) loop();
+  });
+  if (reduce) { draw(); } else { loop(); }
+})();
 
-exitEditMode.addEventListener('click', () => {
-  disableEditMode();
-});
+// ===== Spatial navigation: hub <-> panels (visionOS-style routing) =====
+(function spatialNav() {
+  const stage = document.getElementById('spatial');
+  const hub = document.getElementById('hub');
+  if (!stage || !hub) return;
+  const panels = {};
+  document.querySelectorAll('.spatial-panel').forEach(p => { panels[p.id] = p; });
 
-// Close modal on overlay click
-passwordModal.addEventListener('click', (e) => {
-  if (e.target === passwordModal) {
-    passwordModal.classList.remove('active');
+  function revealPanel(panel) {
+    const title = panel.querySelector('.section-title');
+    if (title) title.classList.add('visible');
+    panel.querySelectorAll('.fade-in, .project-card').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), (i % 8) * 95);
+    });
   }
-});
+  function resetPanel(panel) {
+    panel.scrollTop = 0;
+    panel.querySelectorAll('.visible').forEach(el => el.classList.remove('visible'));
+  }
 
-// Load saved edits on page load
-loadEdits();
+  let current = 'hub';
+  function showView(name) {
+    if (name === current) return;
+    if (name === 'hub' || !panels[name]) {
+      if (panels[current]) panels[current].classList.remove('active');
+      hub.classList.add('active-view');
+      document.body.classList.remove('in-panel');
+      current = 'hub';
+      return;
+    }
+    hub.classList.remove('active-view');
+    if (panels[current]) panels[current].classList.remove('active');
+    const panel = panels[name];
+    resetPanel(panel);
+    panel.classList.add('active');
+    document.body.classList.add('in-panel');
+    current = name;
+    setTimeout(() => revealPanel(panel), 900);
+  }
+
+  // Tiles + HUD logo/home (data-nav), and in-app hash links (Get in Touch / View Projects)
+  document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', (e) => { e.preventDefault(); showView(el.getAttribute('data-nav')); });
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      if (id === 'hub' || panels[id]) { e.preventDefault(); showView(id); }
+    });
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') showView('hub'); });
+
+  // Look-around parallax (subtle 3D tilt of the whole stage with the pointer)
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && window.matchMedia('(hover: hover)').matches) {
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    window.addEventListener('pointermove', (e) => {
+      tx = e.clientX / window.innerWidth - 0.5;
+      ty = e.clientY / window.innerHeight - 0.5;
+    }, { passive: true });
+    (function loop() {
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      stage.style.setProperty('--srx', (cx * 6).toFixed(2) + 'deg');
+      stage.style.setProperty('--sry', (-cy * 5).toFixed(2) + 'deg');
+      requestAnimationFrame(loop);
+    })();
+  }
+})();
+
+

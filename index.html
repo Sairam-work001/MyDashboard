@@ -11,146 +11,94 @@
 </head>
 <body>
 
-  <!-- Navigation -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-container">
-      <a href="#hero" class="nav-logo">SG</a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">About</a></li>
-        <li><a href="#skills">Skills</a></li>
-        <li><a href="#experience">Experience</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#education">Education</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-      <div class="nav-actions">
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-          <span class="icon-sun">&#9728;</span>
-          <span class="icon-moon">&#9790;</span>
-        </button>
-        <button class="edit-btn" id="editToggleBtn" aria-label="Edit mode">&#9998;</button>
-        <button class="hamburger" id="hamburger" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Edit Mode Banner -->
-  <div class="edit-banner" id="editBanner">
-    <span>Edit Mode Active — Click any highlighted text to edit. Changes saved in your browser.</span>
-    <button id="exitEditMode">Exit Edit Mode</button>
-  </div>
-
-  <!-- Password Modal -->
-  <div class="modal-overlay" id="passwordModal">
-    <div class="modal">
-      <h3>Enter Edit Password</h3>
-      <p>First time? Set your password. Returning? Enter your password.</p>
-      <input type="password" id="editPassword" placeholder="Enter password" autocomplete="off">
-      <div class="modal-actions">
-        <button id="modalSubmit">Unlock</button>
-        <button id="modalCancel" class="btn-secondary">Cancel</button>
-      </div>
-      <p class="modal-error" id="modalError"></p>
+  <!-- Background: matrix code-rain + ambient layers (pure CSS/canvas, no CDN) -->
+  <div class="scene-wrap" aria-hidden="true">
+    <canvas id="matrix-canvas"></canvas>
+    <div class="ambient">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="orb orb-3"></span>
+      <div class="grid-overlay"></div>
     </div>
   </div>
 
-  <!-- Hero Section -->
-  <section class="hero" id="hero">
+  <!-- Spatial HUD (just the return-to-hub control) -->
+  <div class="spatial-hud">
+    <button class="hud-home" id="hudHome" data-nav="hub" aria-label="Back to hub">&#8962;&nbsp; Hub</button>
+  </div>
+
+  <!-- ============ SPATIAL STAGE ============ -->
+  <div id="spatial">
+
+  <!-- HUB (home view) -->
+  <section class="hub-view active-view" id="hub">
     <div class="hero-content">
       <div class="hero-photo">
-        <img src="assets/profile.png" alt="Sairam Gajabinkar" class="profile-img" id="profilePhoto">
+        <div class="photo-ring"></div>
+        <img src="assets/profile.png" alt="Sairam Gajabinkar" class="profile-img" id="profilePhoto"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="profile-monogram" style="display:none;">SG</div>
       </div>
       <div class="hero-text">
-        <p class="hero-greeting">Hello, I'm</p>
-        <h1 class="editable" data-field="heroName">Sairam Gajabinkar</h1>
+        <h1 class="hero-name editable" data-field="heroName">Sairam Gajabinkar</h1>
         <h2 class="hero-title editable" data-field="heroTitle">Project Lead | iOS & macOS Developer</h2>
-        <p class="hero-tagline editable" data-field="heroTagline">12+ years building scalable iOS and macOS apps using Swift, SwiftUI, and Objective-C. Pursuing M.Tech in AI & ML to build AI-powered, user-centric mobile experiences.</p>
-        <div class="hero-cta">
-          <a href="#contact" class="btn btn-primary">Get in Touch</a>
-          <a href="#projects" class="btn btn-outline">View Projects</a>
-        </div>
-      </div>
-    </div>
-    <div class="scroll-indicator">
-      <span>&#8595;</span>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section class="section" id="about">
-    <div class="container">
-      <h2 class="section-title">About Me</h2>
-      <div class="about-content">
-        <p class="editable" data-field="aboutText">Project Lead with 12+ years building scalable iOS and macOS apps using Swift, SwiftUI, and Objective-C. Proven experience delivering mission-critical functionality for Apple's internal and retail systems. Skilled in feature design, automated testing, and architecture alignment. Currently pursuing M.Tech in AI & ML from BITS Pilani to build AI-powered, user-centric mobile experiences.</p>
-        <div class="about-highlights">
-          <div class="highlight-card">
+        <div class="hero-stats">
+          <div class="stat">
             <span class="highlight-number">12+</span>
-            <span class="highlight-label">Years Experience</span>
+            <span class="stat-label">Years Experience</span>
           </div>
-          <div class="highlight-card">
+          <span class="stat-divider"></span>
+          <div class="stat">
             <span class="highlight-number">6+</span>
-            <span class="highlight-label">Major Projects</span>
+            <span class="stat-label">Major Projects</span>
           </div>
-          <div class="highlight-card">
+          <span class="stat-divider"></span>
+          <div class="stat">
             <span class="highlight-number">3</span>
-            <span class="highlight-label">Apple Products</span>
+            <span class="stat-label">Apple Products</span>
           </div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Skills Section -->
-  <section class="section section-alt" id="skills">
-    <div class="container">
-      <h2 class="section-title">Skills</h2>
-      <div class="skills-grid">
-        <div class="skill-category">
-          <h3>Mobile & Desktop</h3>
-          <div class="skill-tags">
-            <span class="skill-tag">iOS Development</span>
-            <span class="skill-tag">macOS Development</span>
-            <span class="skill-tag">Swift</span>
-            <span class="skill-tag">SwiftUI</span>
-            <span class="skill-tag">Objective-C</span>
-          </div>
-        </div>
-        <div class="skill-category">
-          <h3>Web & Data</h3>
-          <div class="skill-tags">
-            <span class="skill-tag">HTML</span>
-            <span class="skill-tag">JavaScript</span>
-            <span class="skill-tag">Python</span>
-            <span class="skill-tag">MySQL</span>
-          </div>
-        </div>
-        <div class="skill-category">
-          <h3>AI & ML</h3>
-          <div class="skill-tags">
-            <span class="skill-tag">Machine Learning</span>
-            <span class="skill-tag">Claude / Apple Claude</span>
-            <span class="skill-tag">ChatGPT</span>
-            <span class="skill-tag">GenAI</span>
-          </div>
-        </div>
-        <div class="skill-category">
-          <h3>Tools & Practices</h3>
-          <div class="skill-tags">
-            <span class="skill-tag">Git</span>
-            <span class="skill-tag">SourceTree</span>
-            <span class="skill-tag">Agile / Scrum</span>
-            <span class="skill-tag">Code Reviews</span>
-            <span class="skill-tag">Peer Mentoring</span>
-          </div>
+    <div class="hero-lower">
+      <p class="hero-tagline editable" data-field="heroTagline">Project Lead with 12+ years building scalable iOS and macOS apps using Swift, SwiftUI, and Objective-C. Proven experience delivering mission-critical iOS and macOS functionality for Apple as a client. Skilled in feature design, automated testing, and architecture alignment. Currently pursuing an M.Tech in AI &amp; ML from BITS Pilani to build AI-powered, user-centric mobile experiences.</p>
+      <div class="hero-skills">
+        <span class="hero-skills-label">Skills</span>
+        <div class="skill-tags">
+          <span class="skill-tag">iOS Development</span>
+          <span class="skill-tag">macOS Development</span>
+          <span class="skill-tag">Swift</span>
+          <span class="skill-tag">SwiftUI</span>
+          <span class="skill-tag">Objective-C</span>
+          <span class="skill-tag">HTML</span>
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">MySQL</span>
+          <span class="skill-tag">Machine Learning</span>
+          <span class="skill-tag">Claude / Apple Claude</span>
+          <span class="skill-tag">ChatGPT</span>
+          <span class="skill-tag">GenAI</span>
+          <span class="skill-tag">Git</span>
+          <span class="skill-tag">SourceTree</span>
+          <span class="skill-tag">Agile / Scrum</span>
+          <span class="skill-tag">Code Reviews</span>
+          <span class="skill-tag">Peer Mentoring</span>
         </div>
       </div>
     </div>
+
+    <nav class="tile-menu" aria-label="Explore sections">
+      <button class="tile" data-nav="experience"><span class="tile-icon">&#128188;</span><span class="tile-label">Experience</span></button>
+      <button class="tile" data-nav="projects"><span class="tile-icon">&#128640;</span><span class="tile-label">Projects</span></button>
+      <button class="tile" data-nav="education"><span class="tile-icon">&#127891;</span><span class="tile-label">Education</span></button>
+      <button class="tile" data-nav="contact"><span class="tile-icon">&#9993;</span><span class="tile-label">Contact</span></button>
+    </nav>
+    <footer class="hub-footer">&copy; 2026 Sairam Gajabinkar. All rights reserved.</footer>
   </section>
 
   <!-- Experience Section -->
-  <section class="section" id="experience">
+  <section class="section spatial-panel" id="experience">
     <div class="container">
       <h2 class="section-title">Experience</h2>
       <div class="timeline">
@@ -163,7 +111,7 @@
             </div>
             <h4 class="timeline-company">Wipro Limited — Hyderabad, India</h4>
             <ul>
-              <li>Directed development of enterprise iOS and macOS applications for Apple, ensuring compliance with Apple Human Interface Guidelines and security policies.</li>
+              <li>Directed development of iOS and macOS applications for Apple as a client, ensuring compliance with Apple Human Interface Guidelines and high engineering standards.</li>
               <li>Executed migrations from Objective-C to Swift/SwiftUI, creating reusable components and modifiers.</li>
               <li>Collaborated on architectural alignment, effort estimations, and code reviews to guarantee reliable, timely delivery.</li>
             </ul>
@@ -178,7 +126,7 @@
             </div>
             <h4 class="timeline-company">Quest Global Engineering Services — Hyderabad, India</h4>
             <ul>
-              <li>Developed features for macOS application for Apple.</li>
+              <li>Developed features for a macOS application for Apple as a client.</li>
               <li>Transitioned legacy modules to Swift, enhancing maintainability and reducing crash incidents.</li>
               <li>Collaborated with Apple engineers to deliver incremental releases following Agile methodology.</li>
             </ul>
@@ -233,15 +181,15 @@
   </section>
 
   <!-- Projects Section -->
-  <section class="section section-alt" id="projects">
+  <section class="section spatial-panel section-alt" id="projects">
     <div class="container">
       <h2 class="section-title">Projects</h2>
       <div class="projects-grid">
         <div class="project-card">
-          <div class="project-icon">&#63743;</div>
+          <div class="project-icon">&#128179;</div>
           <h3>Apple EasyPay</h3>
           <p class="project-date">May 2020 – Present</p>
-          <p>iOS application for Apple retail stores across GEOs to sell products like iPhone, iPad, Mac. Owned multiple modules from requirement gathering to implementation.</p>
+          <p>An iOS application delivered for Apple as a client. Owned multiple modules end-to-end, from requirement gathering through implementation and delivery.</p>
           <div class="project-tags">
             <span>Swift</span><span>SwiftUI</span><span>iOS</span>
           </div>
@@ -250,18 +198,18 @@
           <div class="project-icon">&#128640;</div>
           <h3>Apple Rocket</h3>
           <p class="project-date">Jun 2020 – Present</p>
-          <p>macOS application for QA to test EasyPay by configuring builds before installing in Simulator & iPhone. Implemented new features and macOS shortcuts.</p>
+          <p>A macOS application built for Apple as a client. Designed and implemented new features and productivity-focused macOS shortcuts.</p>
           <div class="project-tags">
-            <span>Swift</span><span>macOS</span><span>QA Tools</span>
+            <span>Swift</span><span>macOS</span><span>Automation</span>
           </div>
         </div>
         <div class="project-card">
           <div class="project-icon">&#128225;</div>
           <h3>Apple Radar</h3>
           <p class="project-date">May 2018 – Nov 2019</p>
-          <p>macOS application for Apple's internal bug reporting and tracking system for iOS, macOS, and the web.</p>
+          <p>A macOS application developed for Apple as a client, delivering features across macOS and web workflows.</p>
           <div class="project-tags">
-            <span>Swift</span><span>macOS</span><span>Bug Tracking</span>
+            <span>Swift</span><span>macOS</span><span>Web</span>
           </div>
         </div>
         <div class="project-card">
@@ -296,7 +244,7 @@
   </section>
 
   <!-- Education Section -->
-  <section class="section" id="education">
+  <section class="section spatial-panel" id="education">
     <div class="container">
       <h2 class="section-title">Education</h2>
       <div class="education-grid">
@@ -325,7 +273,7 @@
   </section>
 
   <!-- Contact Section -->
-  <section class="section section-alt" id="contact">
+  <section class="section spatial-panel section-alt" id="contact">
     <div class="container">
       <h2 class="section-title">Get in Touch</h2>
       <div class="contact-content">
@@ -359,12 +307,7 @@
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <p>&copy; 2026 Sairam Gajabinkar. All rights reserved.</p>
-    </div>
-  </footer>
+  </div><!-- /#spatial -->
 
   <script src="script.js"></script>
 </body>
